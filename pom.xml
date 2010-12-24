@@ -2,53 +2,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.cedarsoft</groupId>
-    <artifactId>open</artifactId>
-    <version>4.0.2</version>
-  </parent>
-
   <groupId>au.net.think.mandel</groupId>
   <artifactId>mandel</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <scm>
-    <connection>scm:git:git://git.cedarsoft.com/au.net.think.mandel.mandel</connection>
-    <developerConnection>scm:git:ssh://git.cedarsoft.com/home/git/au.net.think.mandel.mandel</developerConnection>
+    <connection>scm:git@github.com:christo/mandel.git</connection>
+    <developerConnection>scm:git@github.com:christo/mandel.git</developerConnection>
   </scm>
-
-  <dependencies>
-    <!--Guava-->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-
-    <!--NotNull Annotations-->
-    <dependency>
-      <groupId>com.intellij</groupId>
-      <artifactId>annotations</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <!--Test Dependencies-->
-    <dependency>
-      <groupId>com.cedarsoft.commons</groupId>
-      <artifactId>test-utils</artifactId>
-      <version>3.0.0</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-  </dependencies>
-
-  <mailingLists>
-    <mailingList>
-      <name>Mail Support</name>
-      <post>info@cedarsoft.com</post>
-    </mailingList>
-  </mailingLists>
 
 </project>
