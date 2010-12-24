@@ -18,8 +18,8 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
     private static final long NO_DELAYS_PER_YIELD = 50;
     private static final int MAX_FRAME_SKIPS = 5;
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 800;
+    private static final int WIDTH = 400;
+    private static final int HEIGHT = 400;
 
     private Thread animator;
     private volatile boolean running = false;
