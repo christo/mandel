@@ -23,8 +23,8 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
     private static final long NO_DELAYS_PER_YIELD = 50;
     private static final int MAX_FRAME_SKIPS = 5;
-    private static final int WIDTH = 400;
-    private static final int HEIGHT = 400;
+    private static final int WIDTH = 1200;
+    private static final int HEIGHT = 1000;
     private static final int THREADS = 2;
 
     private Thread animator;
@@ -165,6 +165,8 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
         for (Renderer renderer : renderers) {
             renderer.setScaling(scaling);
+            renderer.setxOffset(xOffset);
+            renderer.setyOffset(yOffset);
             futures.add(executor.submit(renderer));
         }
         try {
