@@ -51,7 +51,7 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
     private volatile double scaleFactor, xOffset, yOffset;
     private volatile boolean zoomIn = true;
-    private long period;
+    private final long period;
     private volatile double scaleFactorStep;
     private volatile double xOffsetStep;
     private volatile double yOffsetStep;
