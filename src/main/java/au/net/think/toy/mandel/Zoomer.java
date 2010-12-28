@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -45,6 +46,19 @@ public class Zoomer {
                 } catch (NumberFormatException e) {
                     System.out.println("problem parsing number field");
                 }
+            }
+        }));
+        controls.add(new JButton(new AbstractAction("Stop") {
+            volatile boolean started = true;
+            public void actionPerformed(final ActionEvent e) {
+                if (started) {
+                    putValue(Action.NAME, "Start");
+                    zoomPanel.pause();
+                } else {
+                    putValue(Action.NAME, "Stop");
+                    zoomPanel.unPause();
+                }
+                started = !started;
             }
         }));
         return controls;

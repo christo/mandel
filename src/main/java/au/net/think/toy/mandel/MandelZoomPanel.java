@@ -227,4 +227,12 @@ public class MandelZoomPanel extends JPanel implements Runnable {
             }
         }
     }
+
+    public void pause() {
+        paused = true;
+    }
+
+    public void unPause() {
+        paused = false;
+    }
 }
