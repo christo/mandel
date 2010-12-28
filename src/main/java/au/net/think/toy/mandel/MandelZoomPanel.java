@@ -152,8 +152,8 @@ public class MandelZoomPanel extends JPanel implements Runnable {
         }
         if (renderers == null) {
             renderers = new Renderer[THREADS];
+            int per = HEIGHT / THREADS;
             for (int i = 0; i < renderers.length; i++) {
-                int per = HEIGHT / THREADS;
                 int subframeOffset = i * per;
                 renderers[i] = new Renderer(i, WIDTH, per, subframeOffset, MAX_ITERATIONS, colours);
             }
