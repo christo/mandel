@@ -23,14 +23,18 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
     private static final long NO_DELAYS_PER_YIELD = 50;
     private static final int MAX_FRAME_SKIPS = 5;
-    private static final int WIDTH = 1200;
-    private static final int HEIGHT = 1000;
+    private static final int WIDTH = 500;
+    private static final int HEIGHT = 500;
     private static final int THREADS = 2;
+    private static final int ANIM_STEPS_PER_COLOUR_CYCLE = 4;
+    private static final int NUM_COLOURS = 31;
 
     private Thread animator;
     private volatile boolean running = false;
     private Renderer[] renderers;
     private BufferedImage bgImage = null;
+    private int colourCycle = 0;
+    private int animSteps = 0;
 
     private static final int MAX_ITERATIONS = 90;
     private final Color[] colours;
@@ -57,7 +61,7 @@ public class MandelZoomPanel extends JPanel implements Runnable {
     public MandelZoomPanel(long period) {
         this.period = period;
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
-        colours = new PaletteFactory().argbRainbow(31);
+        colours = new PaletteFactory().argbRainbow(NUM_COLOURS);
         scaleFactor = initScaleFactor;
         xOffset = initXOffset;
         yOffset = initYOffset;
@@ -167,6 +171,7 @@ public class MandelZoomPanel extends JPanel implements Runnable {
             renderer.setScaling(scaling);
             renderer.setxOffset(xOffset);
             renderer.setyOffset(yOffset);
+            renderer.setColourCycle(colourCycle);
             futures.add(executor.submit(renderer));
         }
         try {
@@ -192,6 +197,11 @@ public class MandelZoomPanel extends JPanel implements Runnable {
 
     private void update() {
         if (step || !paused) {
+            animSteps++;
+            if (animSteps >= ANIM_STEPS_PER_COLOUR_CYCLE) {
+                cycleColour();
+                animSteps = 0;
+            }
             if (zoomIn) {
                 if (scaleFactor > targetScaleFactor) {
                     scaleFactor += scaleFactorStep * scaleFactor;
@@ -220,6 +230,13 @@ public class MandelZoomPanel extends JPanel implements Runnable {
                 }
             }
             step = false;
+        }
+    }
+
+    private void cycleColour() {
+        colourCycle++;
+        if (colourCycle >= colours.length) {
+            colourCycle = 0;
         }
     }
 

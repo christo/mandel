@@ -19,6 +19,7 @@ public class Renderer implements Callable<Renderer> {
     private double scaling;
     private double xOffset;
     private double yOffset;
+    private int colourCycle;
 
     public Renderer(final int subframeIndex, int width, int height, int subHeightOffset, int maxIterations, Color[] colours) {
         this.subframeIndex = subframeIndex;
@@ -55,7 +56,7 @@ public class Renderer implements Callable<Renderer> {
                 if (n == maxIterations) {
                     plotColour = Color.BLACK;
                 } else {
-                    plotColour = colours[n % colours.length];
+                    plotColour = colours[((n + colourCycle) % colours.length)];
                 }
 
                 image.setRGB(i, j - subHeightOffset, plotColour.getRGB());
@@ -86,6 +87,10 @@ public class Renderer implements Callable<Renderer> {
 
     public int getSubHeightOffset() {
         return subHeightOffset;
+    }
+
+    public void setColourCycle(final int colourCycle) {
+        this.colourCycle = colourCycle;
     }
 
     @Override
