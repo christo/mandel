@@ -5,14 +5,19 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
-import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.swing.JPanel;
 
 /**
  * Animate a mandelbrot zoom. TODO: linear zoom requires that the step TODO: export to animated gif! :)
- *
  */
 public class MandelZoomPanel extends JPanel implements Runnable {
 
@@ -20,17 +25,22 @@ public class MandelZoomPanel extends JPanel implements Runnable {
     private static final int MAX_FRAME_SKIPS = 5;
     private static final int WIDTH = 400;
     private static final int HEIGHT = 400;
+    private static final int THREADS = 2;
 
     private Thread animator;
     private volatile boolean running = false;
-    private BufferedImage dbImage = null;
+    private Renderer[] renderers;
+    private BufferedImage bgImage = null;
+
     private static final int MAX_ITERATIONS = 90;
     private final Color[] colours;
     private final double initScaleFactor = 2.0;
-//    private final double initXOffset = 1.5;
+    //    private final double initXOffset = 1.5;
     private final double initXOffset = 0.48;
-//    private final double initYOffset = 1.0;
+    //    private final double initYOffset = 1.0;
     private final double initYOffset = -0.62;
+    private final ExecutorService executor;
+
     volatile double targetScaleFactor = 0.0001;
     volatile double targetXOffset = 0.48;
     volatile double targetYOffset = -0.62;
@@ -51,10 +61,14 @@ public class MandelZoomPanel extends JPanel implements Runnable {
         scaleFactor = initScaleFactor;
         xOffset = initXOffset;
         yOffset = initYOffset;
-
+        executor = Executors.newFixedThreadPool(THREADS);
         setFocusable(true);
         requestFocus();
         addKeyListener(new KeyComand());
+
+        if (HEIGHT % THREADS != 0) {
+            throw new IllegalStateException("height needs to be an even multiple of the number of threads at the moment");
+        }
     }
 
     @Override
@@ -133,39 +147,45 @@ public class MandelZoomPanel extends JPanel implements Runnable {
     }
 
     private void render() {
-        if (dbImage == null) {
-            dbImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        if (bgImage == null) {
+            bgImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_ARGB);
         }
-        final double scaling = (double) WIDTH / scaleFactor; // set scaling factor relative to width
-        for (int i = 0; i < WIDTH; i++) {
-            for (int j = 0; j < HEIGHT; j++) {
-                double u = i / scaling - xOffset;
-                double v = j / scaling - yOffset;
-                double x = u;
-                double y = v;
-                int n = 0;
-                // inner iteration
-                double r = 0;
-                double q = 0;
-                while (r + q < 4 && n < MAX_ITERATIONS) {
-                    r = x * x;
-                    q = y * y;
-
-                    y = 2 * x * y + v;
-                    x = r - q + u;
-                    n++;
-                }
-
-                Color plotColour;
-                if (n == MAX_ITERATIONS) {
-                    plotColour = Color.BLACK;
-                } else {
-                    plotColour = colours[n % colours.length];
-                }
-
-                dbImage.setRGB(i, j, plotColour.getRGB());
+        if (renderers == null) {
+            renderers = new Renderer[THREADS];
+            for (int i = 0; i < renderers.length; i++) {
+                int per = HEIGHT / THREADS;
+                int subframeOffset = i * per;
+                renderers[i] = new Renderer(i, WIDTH, per, subframeOffset, MAX_ITERATIONS, colours);
             }
         }
+
+        final double scaling = (double) WIDTH / scaleFactor; // set scaling factor relative to width
+        // farm off to renderers and then wait on them
+        List<Future<Renderer>> futures = new ArrayList<Future<Renderer>>(renderers.length);
+
+        for (Renderer renderer : renderers) {
+            renderer.setScaling(scaling);
+            futures.add(executor.submit(renderer));
+        }
+        try {
+            for (Future<Renderer> future : futures) {
+                renderSubframe(future.get());
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * put the renderer into its part in the whole
+     *
+     * @param renderer the renderer.
+     */
+    private void renderSubframe(Renderer renderer) {
+        final Graphics graphics = bgImage.getGraphics();
+        graphics.drawImage(renderer.getImage(), 0, renderer.getSubHeightOffset(), null);
     }
 
     private void update() {
@@ -205,8 +225,8 @@ public class MandelZoomPanel extends JPanel implements Runnable {
         Graphics g;
         try {
             g = this.getGraphics();
-            if (g != null && dbImage != null) {
-                g.drawImage(dbImage, 0, 0, null);
+            if (g != null && bgImage != null) {
+                g.drawImage(bgImage, 0, 0, null);
                 Toolkit.getDefaultToolkit().sync();
                 g.dispose();
             } else {
